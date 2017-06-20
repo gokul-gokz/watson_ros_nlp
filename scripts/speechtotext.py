@@ -18,7 +18,7 @@ class WatsonSTTPub(object):
 
 	def recognize(self):
 		stt = SpeechToTextV1(username=self.IBM_USERNAME, password=self.IBM_PASSWORD)
-		audio_file = open("/home/asimov/watson_ws/src/watson_ros_nlp/scripts/sound_snippets/time.wav", "rb")
+		audio_file = open("/home/asimov/watson_ws/src/watson_ros_nlp/scripts/sound_snippets/hello.wav", "rb")
 		with open('transcript_result.json', 'w') as fp:
 			result = stt.recognize(audio_file, content_type="audio/wav",
                            continuous=True, timestamps=False,
@@ -26,8 +26,8 @@ class WatsonSTTPub(object):
 			for i in range(len(result[u'results'])):
 				sentence = result[u'results'][i][u'alternatives'][0][u'transcript']
                                 confidence = result[u'results'][i][u'alternatives'][0][u'confidence']
-				#print result[u'results'][i][u'alternatives'][0][u'transcript']
-				#print result[u'results'][i][u'alternatives'][0][u'confidence']
+				print result[u'results'][i][u'alternatives'][0][u'transcript']
+				print result[u'results'][i][u'alternatives'][0][u'confidence']
 				self.pub.publish(String(sentence))
                                 self.pub1.publish(Float32(confidence))
 			#json.dump(result, fp, indent=2)
