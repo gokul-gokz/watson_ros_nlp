@@ -18,7 +18,7 @@ class WatsonSTTPub(object):
 
 	def recognize(self):
 		stt = SpeechToTextV1(username=self.IBM_USERNAME, password=self.IBM_PASSWORD)
-		audio_file = open("/home/asimov/watson_ws/src/watson_ros_nlp/scripts/sound_snippets/hello.wav", "rb")
+		audio_file = open("/home/asimov/watson_ws/src/watson_ros_nlp/scripts/sound_snippets/hai.wav", "rb")
 		with open('transcript_result.json', 'w') as fp:
 			result = stt.recognize(audio_file, content_type="audio/wav",
                            continuous=True, timestamps=False,
