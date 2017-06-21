@@ -18,8 +18,8 @@ def callback(data):
 	#rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
 	context = {}
 
-	workspace_id = 'b862e7b6-82f8-4e50-9ebd-e3be4c07d9a9'
-
+	#workspace_id = 'b862e7b6-82f8-4e50-9ebd-e3be4c07d9a9'
+	workspace_id = 'f8c86853-434f-4588-baed-226a26f855c0'
 	response = conversation.message(workspace_id=workspace_id,message_input={'text': data.data},context=context)
 	#print(json.dumps(response, indent=2))
         answer = response[u'output'][u'text'][0]
@@ -32,7 +32,7 @@ def listener():
   
 	rospy.init_node('listener', anonymous=True)
 
-	rospy.Subscriber("Speech_Text", String, callback)
+	rospy.Subscriber("watson_stt/heard", String, callback)
 
 	rospy.spin()
 

@@ -3,6 +3,8 @@ See more at https://blog.rmotr.com.
 """
 import json
 import rospy
+import time
+
 from std_msgs.msg import String
 from std_msgs.msg import Float32
 
@@ -17,19 +19,22 @@ class WatsonSTTPub(object):
 		self.recognize()
 
 	def recognize(self):
-		stt = SpeechToTextV1(username=self.IBM_USERNAME, password=self.IBM_PASSWORD)
-		audio_file = open("/home/asimov/watson_ws/src/watson_ros_nlp/scripts/sound_snippets/hai.wav", "rb")
-		with open('transcript_result.json', 'w') as fp:
-			result = stt.recognize(audio_file, content_type="audio/wav",
-                           continuous=True, timestamps=False,
-                           max_alternatives=1)
-			for i in range(len(result[u'results'])):
-				sentence = result[u'results'][i][u'alternatives'][0][u'transcript']
-                                confidence = result[u'results'][i][u'alternatives'][0][u'confidence']
-				print result[u'results'][i][u'alternatives'][0][u'transcript']
-				print result[u'results'][i][u'alternatives'][0][u'confidence']
-				self.pub.publish(String(sentence))
-                                self.pub1.publish(Float32(confidence))
+		while(1):
+			stt = SpeechToTextV1(username=self.IBM_USERNAME, password=self.IBM_PASSWORD)
+			audio_file = open("/home/asimov/watson_ws/src/watson_ros_nlp/scripts/sound_snippets/hai.wav", "rb")
+			with open('transcript_result.json', 'w') as fp:
+				result = stt.recognize(audio_file, content_type="audio/wav",
+                           	  continuous=True, timestamps=False,
+                           	  max_alternatives=1)
+				for i in range(len(result[u'results'])):
+					sentence = result[u'results'][i][u'alternatives'][0][u'transcript']
+                                	confidence = result[u'results'][i][u'alternatives'][0][u'confidence']
+					print result[u'results'][i][u'alternatives'][0][u'transcript']
+					print result[u'results'][i][u'alternatives'][0][u'confidence']
+					self.pub.publish(String(sentence))
+                                	self.pub1.publish(Float32(confidence))
+			time.sleep(10)
+			
 			#json.dump(result, fp, indent=2)
 			
     			
