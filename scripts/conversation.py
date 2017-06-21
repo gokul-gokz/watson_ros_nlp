@@ -22,7 +22,13 @@ def callback(data):
 	workspace_id = 'f8c86853-434f-4588-baed-226a26f855c0'
 	response = conversation.message(workspace_id=workspace_id,message_input={'text': data.data},context=context)
 	#print(json.dumps(response, indent=2))
-        answer = response[u'output'][u'text'][0]
+
+	print len(response[u'output'][u'text'])	
+	
+	if(len(response[u'output'][u'text']) == 0):
+		answer = "Pardon. Can you repeat"
+	else:
+        	answer = response[u'output'][u'text'][0]
 	
 	pub.publish(String(answer))
  

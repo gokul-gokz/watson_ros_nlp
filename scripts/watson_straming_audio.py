@@ -107,12 +107,17 @@ class WatsonSTTPub(object):
         self.pub = rospy.Publisher('~heard', String, queue_size=1)
 
     def recognized_cb(self, results):
+	print len(results)
         print results
         # results looks like:
         # [{u'alternatives': [{u'confidence': 0.982, u'transcript': u'hello '}], u'final': True}]
         sentence = results[0]["alternatives"][0]["transcript"]
-        self.pub.publish(String(sentence))
-        print '\n    Heard:   "' + str(sentence) + '"\n'
+        completion = results[0]["final"]
+	print type(completion)
+	if completion == 1:
+        	self.pub.publish(String(sentence))
+        	print '\n    Heard:   "' + str(sentence) + '"\n'
+		print completion
 
     def __del__(self):
         self.stt_client.close()
