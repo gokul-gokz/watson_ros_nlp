@@ -1,28 +1,20 @@
-#!/usr/bin/env python
-
-from ws4py.client.threadedclient import WebSocketClient
-import base64
+import time
+import rospy
 import json
+import pyaudio
+import wave
+import timeit
+import base64
 import ssl
 import subprocess
 import threading
-import time
-import rospy
+
+from ws4py.client.threadedclient import WebSocketClient
+from os.path import join, dirname
+from watson_developer_cloud import TextToSpeechV1
+from watson_developer_cloud import ConversationV1
 from std_msgs.msg import String
-
-
-"""
-Send audio stream to IBM Watson Speech recognition engine
-using the arecord 'hack' via websocket.
-Publish results on a std_msgs/String topic,
-'/watson_stt/heard' by default.
-
-Needed:
-sudo pip install ws4py
-
-Author: Sammy Pfeiffer
-"""
-
+from playsound import playsound
 
 class SpeechToTextClient(WebSocketClient):
     def __init__(self, recognized_callback):
@@ -101,22 +93,89 @@ class SpeechToTextClient(WebSocketClient):
         WebSocketClient.close(self)
 
 
+
+
+
 class WatsonSTTPub(object):
     def __init__(self):
         self.stt_client = SpeechToTextClient(self.recognized_cb)
         self.pub = rospy.Publisher('~heard', String, queue_size=1)
+	
+
+
+    def play_audio(self):
+
+	chunk = 1024
+	wf = wave.open('answer.wav', 'rb')
+	p = pyaudio.PyAudio()
+
+	stream = p.open(
+		format = p.get_format_from_width(wf.getsampwidth()),
+		channels = wf.getnchannels(),
+		rate = wf.getframerate(),
+		output = True)
+	data = wf.readframes(chunk)
+
+	while data != '':
+		stream.write(data)
+		data = wf.readframes(chunk)
+
+	stream.close()
+	p.terminate()
+
+	
+    def text_to_speech(self,answer):
+	text_to_speech = TextToSpeechV1(username='a4f70d58-88d9-4bf1-8baa-47deffa4cd76',password='hwCW1fZQysmv',x_watson_learning_opt_out=True)
+	
+	start1 = time.time()
+	with open(join(dirname(__file__), 'answer.wav'), 'wb') as audio_file:
+    		audio_file.write(text_to_speech.synthesize(answer, accept='audio/wav', voice="en-US_AllisonVoice"))
+	self.play_audio()
+	print "ready"
+	T3 = time.time() -start1
+	print "TS_node_time"
+	print T3
+	
 
     def recognized_cb(self, results):
-	print len(results)
+	
         print results
         # results looks like:
         # [{u'alternatives': [{u'confidence': 0.982, u'transcript': u'hello '}], u'final': True}]
         sentence = results[0]["alternatives"][0]["transcript"]
         completion = results[0]["final"]
+	
 	print type(completion)
+	conversation = ConversationV1(
+ 	 username='24c24760-7d8c-4862-afab-955a5ca63511',
+  	 password='2WvceTeJKH3g',
+  	 version='2017-05-26'
+        )
+	context = {}
+	start = time.time()
 	if completion == 1:
 		if results[0]["alternatives"][0]["confidence"]>0.5:
-        		self.pub.publish(String(sentence))
+			#self.play_audio()
+			workspace_id = 'f8c86853-434f-4588-baed-226a26f855c0'
+			T1 = time.time() -start
+			print "ST_node_time"
+			print T1
+			response = conversation.message(workspace_id=workspace_id,message_input={'text':sentence},context=context)
+			T2 = time.time() -start
+			print "Conversation_node_time"
+			print T2
+			if(len(response[u'output'][u'text']) == 0):
+				answer = "Pardon. Can you repeat"
+				self.text_to_speech(answer)
+		
+			else:
+				answer = response[u'output'][u'text'][0]
+				self.text_to_speech(answer)
+		
+	 
+			print answer        		
+
+			self.pub.publish(String(sentence))
         	print '\n    Heard:   "' + str(sentence) + '"\n'
 		print  results[0]["alternatives"][0]["confidence"]
 		print completion
@@ -125,8 +184,14 @@ class WatsonSTTPub(object):
         self.stt_client.close()
 
 
-if __name__ == '__main__':
-    rospy.init_node('watson_stt')
-    wsttp = WatsonSTTPub()
-    rospy.spin()
 
+
+
+
+	
+
+if __name__ == '__main__':
+	rospy.init_node('watson_stt')
+	wsttp = WatsonSTTPub()
+	
+	rospy.spin()

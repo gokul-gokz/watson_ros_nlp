@@ -35,7 +35,7 @@ class WatsonSTTPub(object):
                                 	self.pub1.publish(Float32(confidence))
 			time.sleep(10)
 			
-			#json.dump(result, fp, indent=2)
+			json.dump(result, fp, indent=2)
 			
     			
 
